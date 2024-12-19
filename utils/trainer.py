@@ -39,6 +39,7 @@ class Trainer:
         loss = self.network.loss_func(x_batch, t_batch)
         self.train_loss_list.append(loss)
 
+
         if self.current_iter % self.iter_per_epoch == 0:
             self.current_epoch += 1
 
@@ -53,7 +54,7 @@ class Trainer:
             print(
                 "=== epoch:" + str(self.current_epoch) + ", train acc: %.2f%%" % (
                 train_acc * 100) + " ===")
-            self.current_iter += 1
+        self.current_iter += 1
 
     def train(self):
         for i in range(self.max_iter):
