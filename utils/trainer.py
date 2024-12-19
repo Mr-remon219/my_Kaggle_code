@@ -2,16 +2,13 @@ from optimizer import *
 
 
 class Trainer:
-    def __init__(self, network, x_train, t_train, x_test, t_test,
+    def __init__(self, network, x_train, t_train,
                  epochs=20, mini_batch_size=100,
                  optimizer='SGD', optimizer_param={'lr': 0.01},
-                 evaluate_sample_num_per_epoch=None, verbose=True):
+                 evaluate_sample_num_per_epoch=None):
         self.network = network
-        self.verbose = verbose
         self.x_train = x_train
         self.t_train = t_train
-        self.x_test = x_test
-        self.t_test = t_test
         self.epochs = epochs
         self.batch_size = mini_batch_size
         self.evaluate_sample_num_per_epoch = evaluate_sample_num_per_epoch
@@ -46,28 +43,20 @@ class Trainer:
             self.current_epoch += 1
 
             x_train_sample, t_train_sample = self.x_train, self.t_train
-            x_test_sample, t_test_sample = self.x_test, self.t_test
             if not self.evaluate_sample_num_per_epoch is None:
                 t = self.evaluate_sample_num_per_epoch
                 x_train_sample, t_train_sample = self.x_train[:t], self.t_train[:t]
-                x_test_sample, t_test_sample = self.x_test[:t], self.t_test[:t]
 
             train_acc = self.network.accuracy(x_train_sample, t_train_sample)
-            test_acc = self.network.accuracy(x_test_sample, t_test_sample)
             self.train_acc_list.append(train_acc)
-            self.test_acc_list.append(test_acc)
 
-            if self.verbose: print(
-                "=== epoch:" + str(self.current_epoch) + ", train acc: %.2f%%, test acc: %.2f%%" % (
-                train_acc * 100, test_acc * 100) + " ===")
-        self.current_iter += 1
+            print(
+                "=== epoch:" + str(self.current_epoch) + ", train acc: %.2f%%" % (
+                train_acc * 100) + " ===")
+            self.current_iter += 1
 
     def train(self):
         for i in range(self.max_iter):
             self.train_step()
 
-        test_acc = self.network.accuracy(self.x_test, self.t_test)
-
-        if self.verbose:
-            print("=============== Final Test Accuracy ===============")
-            print("test acc: %.2f%%" % (test_acc * 100))
+        print("=============== Training is over ===============")
