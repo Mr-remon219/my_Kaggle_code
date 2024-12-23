@@ -11,38 +11,39 @@ filenames = {
     'train': 'train.csv',
     'test': 'test.csv',
 }
-saved_file = 'mnist.pkl'
+saved_file = 'titanic.pkl'
 
 
 def load_train(file_name):
-    file_path = dataset_dir + '/' + file_name
+    file_path = os.path.join(dataset_dir, file_name)
     print(f'将{file_path}转成numpy数组...')
-    data = pd.read_csv(file_path, header=0, dtype=int)
+    data = pd.read_csv(file_path, header=0)
     data_np = data.values
-    data_label = data_np[:, 0]
-    data_imgs = data_np[:, 1:]
-    return data_label, data_imgs
+    data_label = data_np[:, 1]
+    data_pro = data_np[:, 2:]
+    return data_label, data_pro
 
 def load_test(file_name):
-    file_path = dataset_dir + '/' + file_name
+    file_path = os.path.join(dataset_dir, file_name)
     print(f'将{file_path}转成numpy数组...')
-    data = pd.read_csv(file_path, header=0, dtype=int)
+    data = pd.read_csv(file_path, header=0)
     data_np = data.values
-    data_imgs = data_np
-    return data_imgs
+    data_imgs = data_np[:, 1:]
+    data_idx = data_np[:, 0]
+    return data_imgs, data_idx
 
 
 def convert_2_numpy():
     dataset = {}
-    dataset['train_labels'], dataset['train_imgs'] = load_train(filenames['train'])
-    dataset['test_imgs'] = load_test(filenames['test'])
+    dataset['train_labels'], dataset['train_pro'] = load_train(filenames['train'])
+    dataset['test_pro'], dataset['test_idx'] = load_test(filenames['test'])
     return dataset
 
 
 def init_mnist():
     dataset = convert_2_numpy()
     print('将数据集转换成pickle文件...')
-    with open(dataset_dir + '/' + saved_file, 'wb') as f:
+    with open(os.path.join(dataset_dir, saved_file), 'wb') as f:
         pickle.dump(dataset, f, -1)
     print(f'{saved_file}')
 
@@ -53,23 +54,16 @@ def _change_one_hot_label(x):
 
     return T
 
-def load_mnist(normalize=True, flatten=True, one_hot_label=False):
-    if not os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/' + saved_file):
+def load_titanic(one_hot_label=True):
+    if not os.path.exists(os.path.join(dataset_dir, saved_file)):
         init_mnist()
 
-    with open(dataset_dir + '/' + saved_file, 'rb') as f:
+    with open(os.path.join(dataset_dir, saved_file), 'rb') as f:
         dataset = pickle.load(f)
 
-    if normalize:
-        for key in ('train_imgs', 'test_imgs'):
-            dataset[key] = dataset[key].astype(np.float32) / 255.0
 
     if one_hot_label:
         dataset['train_labels'] = _change_one_hot_label(dataset['train_labels'])
 
-    if not flatten:
-        for key in ('train_imgs', 'test_imgs'):
-            dataset[key] = dataset[key].reshape(-1, 1, 28, 28)
 
-
-    return (dataset['train_imgs'], dataset['train_labels']), dataset['test_imgs']
+    return (dataset['train_pro'], dataset['train_labels']), (dataset['test_pro'], dataset['test_idx'])
